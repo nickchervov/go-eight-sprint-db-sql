@@ -34,6 +34,7 @@ func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
 	require.NoError(t, err)
+	defer db.Close()
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 	// add
@@ -46,6 +47,7 @@ func TestAddGetDelete(t *testing.T) {
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 	actualParcel, err := store.Get(lastId)
 	require.NoError(t, err)
+	assert.Equal(t, lastId, actualParcel.Number)
 	assert.Equal(t, parcel.Client, actualParcel.Client)
 	assert.Equal(t, parcel.Status, actualParcel.Status)
 	assert.Equal(t, parcel.Address, actualParcel.Address)
@@ -65,6 +67,7 @@ func TestSetAddress(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
 	require.NoError(t, err)
+	defer db.Close()
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 	// add
@@ -89,6 +92,7 @@ func TestSetStatus(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
 	require.NoError(t, err)
+	defer db.Close()
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
 	// add
@@ -112,6 +116,7 @@ func TestGetByClient(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
 	require.NoError(t, err)
+	defer db.Close()
 	store := NewParcelStore(db)
 	parcels := []Parcel{
 		getTestParcel(),
@@ -142,16 +147,13 @@ func TestGetByClient(t *testing.T) {
 	// убедитесь в отсутствии ошибки
 	require.NoError(t, err)
 	// убедитесь, что количество полученных посылок совпадает с количеством добавленных
-	require.Equal(t, len(parcels), len(storedParcels))
+	assert.Len(t, storedParcels, len(parcels))
 	// check
 	for _, parcel := range storedParcels {
 		// в parcelMap лежат добавленные посылки, ключ - идентификатор посылки, значение - сама посылка
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
 		// убедитесь, что значения полей полученных посылок заполнены верно
 		require.NotEmpty(t, parcelMap[parcel.Number])
-		assert.Equal(t, parcelMap[parcel.Number].Client, parcel.Client)
-		assert.Equal(t, parcelMap[parcel.Number].Status, parcel.Status)
-		assert.Equal(t, parcelMap[parcel.Number].Address, parcel.Address)
-		assert.Equal(t, parcelMap[parcel.Number].CreatedAt, parcel.CreatedAt)
+		assert.Equal(t, parcelMap[parcel.Number], parcel)
 	}
 }

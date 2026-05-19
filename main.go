@@ -104,6 +104,7 @@ func main() {
 		log.Printf("error connecting the database: %v\n", err)
 		return
 	}
+	defer db.Close()
 	store := NewParcelStore(db) // создайте объект ParcelStore функцией NewParcelStore
 	service := NewParcelService(store)
 
